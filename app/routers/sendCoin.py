@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..dependencies import get_db
-from ..models import User
-from ..schemas import SendCoinRequest
-from ..auth import get_current_user
+from app.auth import get_current_user
+from app.database import get_db
+from app.models import User, CoinTransaction
+from app.schemas import SendCoinRequest
 
 router = APIRouter(prefix="/api")
 
@@ -19,13 +19,16 @@ def send_coin(send_request: SendCoinRequest, current_user: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Recipient not found")
 
     current_user.coins -= send_request.amount
+
     recipient.coins += send_request.amount
 
-    current_user.coin_history["sent"].append({"toUser": send_request.toUser, "amount": send_request.amount})
-    recipient.coin_history["received"].append({"fromUser": current_user.username, "amount": send_request.amount})
+    transaction = CoinTransaction(
+        amount=send_request.amount,
+        sender_id=current_user.id,
+        receiver_id=recipient.id
+    )
+    db.add(transaction)
 
     db.commit()
-    db.refresh(current_user)
-    db.refresh(recipient)
 
     return {"message": "Coins sent successfully"}

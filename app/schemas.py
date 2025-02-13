@@ -1,5 +1,6 @@
-from typing import List
 from pydantic import BaseModel
+from typing import List
+from datetime import datetime
 
 
 class UserCreate(BaseModel):
@@ -7,40 +8,48 @@ class UserCreate(BaseModel):
     password: str
 
 
-class InventoryItem(BaseModel):
-    type: str
-    quantity: int
-
-
-class CoinTransaction(BaseModel):
-    fromUser: str
-    amount: int
-
-
-class SentCoinTransaction(BaseModel):
-    toUser: str
-    amount: int
-
-
-class CoinHistory(BaseModel):
-    received: List[CoinTransaction]
-    sent: List[SentCoinTransaction]
-
-
 class UserResponse(BaseModel):
     id: int
     username: str
     coins: int
-    inventory: List[InventoryItem]
-    coin_history: CoinHistory
+    inventory: List["InventoryItem"]
 
     class Config:
         from_attributes = True
 
 
+class InventoryItem(BaseModel):
+    type: str
+    quantity: int
+
+
+class CoinTransactionResponse(BaseModel):
+    id: int
+    amount: int
+    sender_id: int
+    receiver_id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CoinHistory(BaseModel):
+    received: List[CoinTransactionResponse]
+    sent: List[CoinTransactionResponse]
+
+
 class SendCoinRequest(BaseModel):
     toUser: str
     amount: int
+
+
+class SendCoinResponse(BaseModel):
+    message: str
+
+
+class BuyItemResponse(BaseModel):
+    message: str
 
 
 class Token(BaseModel):
@@ -50,20 +59,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str
-
-
-class BuyItemResponse(BaseModel):
-    message: str
-
-
-class SendCoinResponse(BaseModel):
-    message: str
-
-
-class InfoResponse(BaseModel):
-    coins: int
-    inventory: List[InventoryItem]
-    coin_history: CoinHistory
 
 
 class ErrorResponse(BaseModel):

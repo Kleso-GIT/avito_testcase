@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..dependencies import get_db
-from ..models import User
-from ..auth import get_current_user
-from ..config import ITEMS
+from app.auth import get_current_user
+from app.database import get_db
+from app.models import User, Inventory
+from app.config import ITEMS
 
 router = APIRouter(prefix="/api")
 
@@ -19,13 +19,17 @@ def buy_item(item: str, current_user: User = Depends(get_current_user), db: Sess
 
     current_user.coins -= price
 
-    item_in_inventory = next((i for i in current_user.inventory if i["type"] == item), None)
+    item_in_inventory = db.query(Inventory).filter(
+        Inventory.owner_id == current_user.id,
+        Inventory.item_type == item
+    ).first()
+
     if item_in_inventory:
-        item_in_inventory["quantity"] += 1
+        item_in_inventory.quantity += 1
     else:
-        current_user.inventory.append({"type": item, "quantity": 1})
+        new_item = Inventory(item_type=item, quantity=1, owner_id=current_user.id)
+        db.add(new_item)
 
     db.commit()
-    db.refresh(current_user)
 
     return {"message": f"Item {item} purchased successfully"}
