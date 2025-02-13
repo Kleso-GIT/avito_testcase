@@ -7,14 +7,12 @@ from sqlalchemy.orm import Session
 from app.auth import (
     authenticate_user,
     create_access_token,
-    get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     COOKIE_NAME,
 )
 from app.dependencies import get_db
-from app.models import User
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 
 @router.post("/login")
@@ -44,8 +42,3 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), 
 def logout(response: Response):
     response.delete_cookie(COOKIE_NAME)
     return {"message": "Logged out successfully"}
-
-
-@router.get("/me")
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return {"user_id": current_user.id}

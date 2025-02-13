@@ -1,15 +1,16 @@
-from pydantic import BaseModel
 from typing import List
+from pydantic import BaseModel
 
 
-# ## ITEMS ## #
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
 
 class InventoryItem(BaseModel):
     type: str
     quantity: int
 
-
-# ## COINS ## #
 
 class CoinTransaction(BaseModel):
     fromUser: str
@@ -26,13 +27,6 @@ class CoinHistory(BaseModel):
     sent: List[SentCoinTransaction]
 
 
-# ## USERS ## #
-
-class UserCreate(BaseModel):
-    username: str
-    password: str
-
-
 class UserResponse(BaseModel):
     id: int
     username: str
@@ -44,7 +38,9 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-# ## TOKENS ## #
+class SendCoinRequest(BaseModel):
+    toUser: str
+    amount: int
 
 
 class Token(BaseModel):
@@ -54,3 +50,21 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str
+
+
+class BuyItemResponse(BaseModel):
+    message: str
+
+
+class SendCoinResponse(BaseModel):
+    message: str
+
+
+class InfoResponse(BaseModel):
+    coins: int
+    inventory: List[InventoryItem]
+    coin_history: CoinHistory
+
+
+class ErrorResponse(BaseModel):
+    errors: str
