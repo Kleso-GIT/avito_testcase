@@ -3,21 +3,9 @@ from sqlalchemy.orm import Session
 from ..dependencies import get_db
 from ..models import User
 from ..auth import get_current_user
+from ..config import ITEMS
 
 router = APIRouter(prefix="/api")
-
-ITEMS = {
-    "t-shirt": 80,
-    "cup": 20,
-    "book": 50,
-    "pen": 10,
-    "powerbank": 200,
-    "hoody": 300,
-    "umbrella": 200,
-    "socks": 10,
-    "wallet": 50,
-    "pink-hoody": 500
-}
 
 
 @router.get("/buy/{item}")

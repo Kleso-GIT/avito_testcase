@@ -8,12 +8,8 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db
 from app.schemas import TokenData
 from app.crud import get_user
-from app.utils import verify_password, get_password_hash
-
-SECRET_KEY = "secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-COOKIE_NAME = "access_token"
+from app.utils import verify_password
+from app.config import SECRET_KEY, ALGORITHM, COOKIE_NAME
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 

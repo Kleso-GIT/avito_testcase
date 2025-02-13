@@ -3,11 +3,11 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from ..config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 from app.auth import (
     authenticate_user,
     create_access_token,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
     COOKIE_NAME,
 )
 from app.dependencies import get_db
