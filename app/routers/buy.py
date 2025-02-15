@@ -1,13 +1,16 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import User, Inventory
+from app.models import User, Inventory, CoinTransaction
 from app.config import ITEMS
 
 router = APIRouter(prefix="/api")
 
 
+@router.get("/buy/{item}")
 @router.get("/buy/{item}")
 def buy_item(
         item: str,
@@ -29,6 +32,14 @@ def buy_item(
         buyer.coins -= price
         db.flush()
 
+        transaction = CoinTransaction(
+            amount=price,
+            sender_id=buyer.id,
+            receiver_id=None,
+            timestamp=datetime.utcnow()
+        )
+        db.add(transaction)
+
         item_in_inventory = db.query(Inventory).filter(
             Inventory.owner_id == buyer.id,
             Inventory.item_type == item
@@ -41,8 +52,8 @@ def buy_item(
             db.add(new_item)
 
         db.commit()
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Purchase failed")
+        raise HTTPException(status_code=500, detail=f"Purchase failed: {str(e)}")
 
     return {"message": f"Item {item} purchased successfully"}

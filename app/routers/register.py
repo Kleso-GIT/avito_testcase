@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
-from app.schemas import UserCreate, UserResponse
+from app.schemas import UserCreate, UserResponse, CoinHistory
 from app.utils import get_password_hash
 
 router = APIRouter(prefix="/api")
@@ -26,4 +26,10 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
 
-    return db_user
+    return {
+        "id": db_user.id,
+        "username": db_user.username,
+        "coins": db_user.coins,
+        "inventory": [],
+        "coin_history": CoinHistory(received=[], sent=[])
+    }
