@@ -12,7 +12,7 @@ from app.auth import (
 )
 from app.dependencies import get_db
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["auth"])
 
 
 @router.post("/login")

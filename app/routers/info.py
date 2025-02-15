@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models import User, Inventory, CoinTransaction
 from app.schemas import UserResponse, InventoryItem, CoinTransactionResponse, CoinHistory
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["info"])
 
 
 @router.get("/info", response_model=UserResponse)

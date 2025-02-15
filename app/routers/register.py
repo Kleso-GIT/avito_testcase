@@ -5,7 +5,7 @@ from app.models import User
 from app.schemas import UserCreate, UserResponse, CoinHistory
 from app.utils import get_password_hash
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["auth"])
 
 
 @router.post("/register", response_model=UserResponse)

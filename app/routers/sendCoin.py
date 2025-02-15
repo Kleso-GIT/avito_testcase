@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models import User, CoinTransaction
 from app.schemas import SendCoinRequest
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["transactions"])
 
 
 @router.post("/sendCoin")

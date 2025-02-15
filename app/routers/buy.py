@@ -7,10 +7,9 @@ from app.database import get_db
 from app.models import User, Inventory, CoinTransaction
 from app.config import ITEMS
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["transactions"])
 
 
-@router.get("/buy/{item}")
 @router.get("/buy/{item}")
 def buy_item(
         item: str,
