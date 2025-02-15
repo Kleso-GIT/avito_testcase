@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from datetime import datetime
 
@@ -42,7 +42,7 @@ class InventoryItem(BaseModel):
 
 class SendCoinRequest(BaseModel):
     toUser: str
-    amount: int
+    amount: int = Field(gt=0, description="The amount must be greater than 0")
 
 
 class SendCoinResponse(BaseModel):
