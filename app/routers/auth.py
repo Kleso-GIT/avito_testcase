@@ -32,7 +32,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), 
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        secure=False,
+        secure=True,
         samesite="lax",
     )
     return {"message": "Logged in successfully"}

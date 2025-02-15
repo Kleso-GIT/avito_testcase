@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from app.routers import register, auth, buy, info, sendCoin
 from app.database import engine, Base
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
