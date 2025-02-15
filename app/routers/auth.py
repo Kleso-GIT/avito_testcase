@@ -11,11 +11,12 @@ from app.auth import (
     COOKIE_NAME,
 )
 from app.dependencies import get_db
+from fastapi_limiter.depends import RateLimiter
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
