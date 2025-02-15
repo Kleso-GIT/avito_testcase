@@ -9,6 +9,7 @@ from app.auth import (
 
 from ..database import get_db
 from ..schemas import AuthResponse, ErrorResponse
+from ..utils import raise_http_exception
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
@@ -26,9 +27,7 @@ router = APIRouter(prefix="/api", tags=["auth"])
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
+        raise_http_exception(status.HTTP_401_UNAUTHORIZED, "Неверное имя пользователя или пароль")
+
     access_token = create_access_token(data={"sub": user.username})
     return {"token": access_token}
