@@ -3,6 +3,30 @@ from typing import List
 from datetime import datetime
 
 
+class InfoResponse(BaseModel):
+    coins: int
+    inventory: List[dict]
+    coinHistory: dict
+
+
+class ErrorResponse(BaseModel):
+    errors: str
+
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+
+
+class SendCoinRequest(BaseModel):
+    toUser: str
+    amount: int = Field(gt=0, description="The amount must be greater than 0")
+
+
 class CoinTransactionResponse(BaseModel):
     id: int
     amount: int
@@ -40,11 +64,6 @@ class InventoryItem(BaseModel):
     quantity: int
 
 
-class SendCoinRequest(BaseModel):
-    toUser: str
-    amount: int = Field(gt=0, description="The amount must be greater than 0")
-
-
 class SendCoinResponse(BaseModel):
     message: str
 
@@ -60,7 +79,3 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str
-
-
-class ErrorResponse(BaseModel):
-    errors: str

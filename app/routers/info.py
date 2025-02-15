@@ -3,49 +3,44 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import User, Inventory, CoinTransaction
-from app.schemas import UserResponse, InventoryItem, CoinTransactionResponse, CoinHistory
+from app.schemas import UserResponse, InventoryItem, CoinTransactionResponse, CoinHistory, InfoResponse, ErrorResponse
 
 router = APIRouter(prefix="/api", tags=["info"])
 
 
-@router.get("/info", response_model=UserResponse)
+@router.get(
+    "/info",
+    response_model=InfoResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Неверный запрос"},
+        401: {"model": ErrorResponse, "description": "Неавторизован"},
+        500: {"model": ErrorResponse, "description": "Внутренняя ошибка сервера"},
+    },
+    summary="Получить информацию о монетах, инвентаре и истории транзакций",
+)
 def get_user_info(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     inventory = db.query(Inventory).filter(Inventory.owner_id == current_user.id).all()
     inventory_items = [
-        InventoryItem(type=item.item_type, quantity=item.quantity)
+        {"type": item.item_type, "quantity": item.quantity}
         for item in inventory
     ]
 
     sent_transactions = db.query(CoinTransaction).filter(CoinTransaction.sender_id == current_user.id).all()
     received_transactions = db.query(CoinTransaction).filter(CoinTransaction.receiver_id == current_user.id).all()
 
-    sent_transactions_response = [
-        CoinTransactionResponse(
-            id=transaction.id,
-            amount=transaction.amount,
-            sender_id=transaction.sender_id,
-            receiver_id=transaction.receiver_id,
-            timestamp=transaction.timestamp
-        ) for transaction in sent_transactions
-    ]
-
-    received_transactions_response = [
-        CoinTransactionResponse(
-            id=transaction.id,
-            amount=transaction.amount,
-            sender_id=transaction.sender_id,
-            receiver_id=transaction.receiver_id,
-            timestamp=transaction.timestamp
-        ) for transaction in received_transactions
-    ]
+    coin_history = {
+        "received": [
+            {"fromUser": transaction.sender.username, "amount": transaction.amount}
+            for transaction in received_transactions
+        ],
+        "sent": [
+            {"toUser": transaction.receiver.username, "amount": transaction.amount}
+            for transaction in sent_transactions
+        ],
+    }
 
     return {
-        "id": current_user.id,
-        "username": current_user.username,
         "coins": current_user.coins,
         "inventory": inventory_items,
-        "coin_history": CoinHistory(
-            sent=sent_transactions_response,
-            received=received_transactions_response
-        )
+        "coinHistory": coin_history,
     }

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
+from fastapi.security import HTTPBearer
 
 from app.routers import register, auth, buy, info, sendCoin
 from app.database import engine, Base
@@ -7,8 +8,15 @@ from dotenv import load_dotenv
 from redis import asyncio as aioredis
 
 load_dotenv()
+security = HTTPBearer()
 
-app = FastAPI()
+app = FastAPI(
+    title="API Avito shop",
+    version="1.0.0",
+    description="API для управления монетами, инвентарем и транзакциями.",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 
 @app.on_event("startup")

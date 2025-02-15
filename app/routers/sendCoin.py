@@ -5,12 +5,21 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import User, CoinTransaction
-from app.schemas import SendCoinRequest
+from app.schemas import SendCoinRequest, ErrorResponse
 
 router = APIRouter(prefix="/api", tags=["transactions"])
 
 
-@router.post("/sendCoin")
+@router.post(
+    "/sendCoin",
+    responses={
+        200: {"description": "Успешный ответ"},
+        400: {"model": ErrorResponse, "description": "Неверный запрос"},
+        401: {"model": ErrorResponse, "description": "Неавторизован"},
+        500: {"model": ErrorResponse, "description": "Внутренняя ошибка сервера"},
+    },
+    summary="Отправить монеты другому пользователю",
+)
 def send_coin(
         send_request: SendCoinRequest,
         current_user: User = Depends(get_current_user),

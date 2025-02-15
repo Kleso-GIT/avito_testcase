@@ -6,11 +6,20 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.models import User, Inventory, CoinTransaction
 from app.config import ITEMS
+from app.schemas import ErrorResponse
 
 router = APIRouter(prefix="/api", tags=["transactions"])
 
 
-@router.get("/buy/{item}")
+@router.get("/buy/{item}",
+            responses={
+                200: {"description": "Успешный ответ"},
+                400: {"model": ErrorResponse, "description": "Неверный запрос"},
+                401: {"model": ErrorResponse, "description": "Неавторизован"},
+                500: {"model": ErrorResponse, "description": "Внутренняя ошибка сервера"},
+            },
+            summary="Купить предмет за монеты",
+            )
 def buy_item(
         item: str,
         current_user: User = Depends(get_current_user),
