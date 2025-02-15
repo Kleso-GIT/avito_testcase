@@ -5,7 +5,7 @@ from fastapi import HTTPException, status, Depends, Request
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.database import get_db
 from app.schemas import TokenData
 from app.crud import get_user
 from app.utils import verify_password

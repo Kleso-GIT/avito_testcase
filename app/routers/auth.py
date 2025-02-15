@@ -10,8 +10,9 @@ from app.auth import (
     create_access_token,
     COOKIE_NAME,
 )
-from app.dependencies import get_db
 from fastapi_limiter.depends import RateLimiter
+
+from ..database import get_db
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
