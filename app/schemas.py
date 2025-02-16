@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 from datetime import datetime
 
@@ -34,8 +34,7 @@ class CoinTransactionResponse(BaseModel):
     receiver_id: None | int
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CoinHistory(BaseModel):
@@ -55,8 +54,7 @@ class UserResponse(BaseModel):
     inventory: List["InventoryItem"]
     coin_history: CoinHistory
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InventoryItem(BaseModel):
