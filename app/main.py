@@ -7,7 +7,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 
-from app.routers import register, auth, buy, info, sendCoin
+from app.routers import auth, buy, info, sendCoin
 from app.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -36,7 +36,6 @@ async def startup():
         await conn.run_sync(Base.metadata.create_all)
 
 
-app.include_router(register.router)
 app.include_router(auth.router)
 app.include_router(buy.router)
 app.include_router(info.router)
