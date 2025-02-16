@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException
-from sqlalchemy.orm import Session
-from app.auth import get_current_user
-from app.database import get_db
-from app.models import User, Inventory, CoinTransaction
-from app.schemas import InfoResponse, ErrorResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from ..database import get_db
+from ..models import User, Inventory, CoinTransaction
+from ..schemas import InfoResponse, ErrorResponse
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api", tags=["info"])
 
@@ -13,11 +14,17 @@ router = APIRouter(prefix="/api", tags=["info"])
     401: {"model": ErrorResponse, "description": "Неавторизован"},
     500: {"model": ErrorResponse, "description": "Внутренняя ошибка сервера"},
 })
-def get_user_info(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_user_info(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
-        inventory = db.query(Inventory).filter_by(owner_id=current_user.id).all()
-        sent_transactions = db.query(CoinTransaction).filter_by(sender_id=current_user.id).all()
-        received_transactions = db.query(CoinTransaction).filter_by(receiver_id=current_user.id).all()
+        inventory_result = await db.execute(select(Inventory).filter_by(owner_id=current_user.id))
+        inventory = inventory_result.scalars().all()
+
+        sent_transactions_result = await db.execute(select(CoinTransaction).filter_by(sender_id=current_user.id))
+        sent_transactions = sent_transactions_result.scalars().all()
+
+        received_transactions_result = await db.execute(select(CoinTransaction).filter_by(receiver_id=current_user.id))
+        received_transactions = received_transactions_result.scalars().all()
+
         return {
             "coins": current_user.coins,
             "inventory": [{"type": i.item_type, "quantity": i.quantity} for i in inventory],
@@ -28,5 +35,6 @@ def get_user_info(current_user: User = Depends(get_current_user), db: Session = 
                          sent_transactions],
             },
         }
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка при получении информации")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Ошибка при получении информации: {str(e)}")

@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
-from app.auth import get_current_user
-from app.database import get_db
-from app.models import User, CoinTransaction
-from app.schemas import SendCoinRequest, ErrorResponse
-from app.utils import raise_http_exception
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from ..database import get_db
+from ..models import User, CoinTransaction
+from ..schemas import SendCoinRequest, ErrorResponse
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api", tags=["transactions"])
 
@@ -21,25 +21,26 @@ router = APIRouter(prefix="/api", tags=["transactions"])
     },
     summary="Отправить монеты другому пользователю",
 )
-def send_coin(
+async def send_coin(
         send_request: SendCoinRequest,
         current_user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+        db: AsyncSession = Depends(get_db)
 ):
     if current_user.coins < send_request.amount:
-        raise_http_exception(status.HTTP_400_BAD_REQUEST, "Недостаточно монет")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Недостаточно монет")
 
-    recipient = db.query(User).filter(User.username == send_request.toUser).first()
+    result = await db.execute(select(User).filter(User.username == send_request.toUser))
+    recipient = result.scalars().first()
+
     if not recipient:
-        raise_http_exception(status.HTTP_400_BAD_REQUEST, "Получатель не найден")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Получатель не найден")
 
     if current_user.username == send_request.toUser:
-        raise_http_exception(status.HTTP_400_BAD_REQUEST, "Нельзя отправить монеты самому себе")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Нельзя отправить монеты самому себе")
 
     try:
         current_user.coins -= send_request.amount
         recipient.coins += send_request.amount
-        db.flush()
 
         transaction = CoinTransaction(
             amount=send_request.amount,
@@ -48,9 +49,10 @@ def send_coin(
             timestamp=datetime.utcnow()
         )
         db.add(transaction)
-        db.commit()
+        await db.commit()
     except Exception as e:
-        db.rollback()
-        raise_http_exception(status.HTTP_500_INTERNAL_SERVER_ERROR, "Ошибка при отправке монет")
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Ошибка при отправке монет: {str(e)}")
 
     return {"message": "Монеты успешно отправлены"}

@@ -1,13 +1,16 @@
+# .env
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# main
 from fastapi import FastAPI
-from fastapi_limiter import FastAPILimiter
 from fastapi.security import HTTPBearer
 
 from app.routers import register, auth, buy, info, sendCoin
 from app.database import engine, Base
-from dotenv import load_dotenv
-from redis import asyncio as aioredis
+from fastapi.middleware.cors import CORSMiddleware
 
-load_dotenv()
 security = HTTPBearer()
 
 app = FastAPI(
@@ -18,11 +21,19 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.on_event("startup")
 async def startup():
-    redis = await aioredis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
-    await FastAPILimiter.init(redis)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 app.include_router(register.router)
@@ -30,5 +41,3 @@ app.include_router(auth.router)
 app.include_router(buy.router)
 app.include_router(info.router)
 app.include_router(sendCoin.router)
-
-Base.metadata.create_all(bind=engine)

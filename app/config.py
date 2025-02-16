@@ -13,6 +13,8 @@ ITEMS = {
     "pink-hoody": 500
 }
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 # Конфигурация JWT
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 ALGORITHM = "HS256"

@@ -1,22 +1,20 @@
 from datetime import datetime, timedelta
-
 from jose import JWTError, jwt
 from fastapi import HTTPException, status, Depends
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import get_db
-
-from app.crud import get_user
-from app.utils import verify_password
 from app.config import SECRET_KEY, ALGORITHM
+from sqlalchemy.ext.asyncio import AsyncSession
+from .crud import get_user
+from .utils import verify_password
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 security = HTTPBearer()
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user(db, username)
+async def authenticate_user(db: AsyncSession, username: str, password: str):
+    user = await get_user(db, username)
     if not user or not verify_password(password, user.hashed_password):
         return False
     return user
@@ -35,7 +33,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 async def get_current_user(
         credentials: HTTPAuthorizationCredentials = Depends(security),
-        db: Session = Depends(get_db)
+        db: AsyncSession = Depends(get_db)
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -51,7 +49,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = get_user(db, username=username)
+    user = await get_user(db, username=username)
     if user is None:
         raise credentials_exception
     return user

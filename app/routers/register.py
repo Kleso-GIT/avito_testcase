@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
@@ -17,10 +19,12 @@ router = APIRouter(prefix="/api", tags=["auth"])
     },
     summary="Регистрация нового пользователя",
 )
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.username == user.username).first()
+async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).filter(User.username == user.username))
+    db_user = result.scalars().first()
+
     if db_user:
-        raise_http_exception(status.HTTP_400_BAD_REQUEST, "Имя пользователя уже занято")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Имя пользователя уже занято")
 
     try:
         hashed_password = get_password_hash(user.password)
@@ -30,11 +34,12 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
             coins=1000
         )
         db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
     except Exception as e:
-        db.rollback()
-        raise_http_exception(status.HTTP_500_INTERNAL_SERVER_ERROR, "Ошибка при регистрации пользователя")
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Ошибка при регистрации пользователя")
 
     return {
         "id": db_user.id,
