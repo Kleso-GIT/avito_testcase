@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy import select
@@ -40,11 +40,12 @@ async def buy_item(item: str, current_user: User = Depends(get_current_user), db
     transaction = CoinTransaction(
         amount=price,
         sender_id=current_user.id,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
     db.add(transaction)
 
-    item_in_inventory = await db.execute(select(Inventory).filter_by(owner_id=current_user.id, item_type=item))
+    item_in_inventory = await db.execute(select(Inventory).
+                                         filter_by(owner_id=current_user.id, item_type=item))
     item_in_inventory = item_in_inventory.scalars().first()
 
     if item_in_inventory:

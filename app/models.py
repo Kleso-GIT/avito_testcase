@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
@@ -38,7 +38,7 @@ class CoinTransaction(Base):
     amount = Column(Integer)
     sender_id = Column(Integer, ForeignKey("users.id"))
     receiver_id = Column(Integer, ForeignKey("users.id"))
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
 
     sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_transactions")
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_transactions")

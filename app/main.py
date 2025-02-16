@@ -1,15 +1,15 @@
 # .env
 from dotenv import load_dotenv
-
 load_dotenv()
 
-# main
+
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 
 from app.routers import auth, buy, info, sendCoin
 from app.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
+
 
 security = HTTPBearer()
 

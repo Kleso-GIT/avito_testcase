@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,7 +55,7 @@ async def send_coin(
             amount=send_request.amount,
             sender_id=current_user.id,
             receiver_id=recipient.id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         db.add(transaction)
         await db.commit()
