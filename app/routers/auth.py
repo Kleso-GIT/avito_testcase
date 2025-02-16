@@ -6,6 +6,7 @@ from ..auth import authenticate_user, create_access_token
 from ..database import get_db
 from ..schemas import AuthResponse, ErrorResponse, UserCreate, UserResponse, CoinHistory
 from ..crud import create_user, get_user
+from ..utils import verify_password
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
@@ -21,12 +22,11 @@ router = APIRouter(prefix="/api", tags=["auth"])
     summary="Аутентификация и получение JWT-токена",
 )
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    user = await authenticate_user(db, form_data.username, form_data.password)
+    user = await get_user(db, form_data.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверное имя пользователя или пароль",
-        )
+        user = await create_user(db, UserCreate(username=form_data.username, password=form_data.password))
+    if not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Неверный пароль")
     return {"token": create_access_token(data={"sub": user.username})}
 
 

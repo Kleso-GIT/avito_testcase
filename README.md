@@ -13,4 +13,6 @@ http://localhost:8080/docs
 - SECRET_KEY="your_secret_key"
 - DATABASE_URL="postgresql+asyncpg://user:password@host:port/db_name"
 
+Либо можно прописать их в *environment* в [docker-compose.yml](docker-compose.yml)
+
 Если не задать свои ключ и url, будут использоваться параметры по умолчанию
