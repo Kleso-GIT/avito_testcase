@@ -11,8 +11,6 @@ from app.schemas import ErrorResponse
 
 router = APIRouter(prefix="/api", tags=["transactions"])
 
-router = APIRouter(prefix="/api", tags=["transactions"])
-
 
 @router.get(
     "/buy/{item}",
