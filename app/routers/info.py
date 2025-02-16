@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
+
 from ..database import get_db
 from ..models import User, Inventory, CoinTransaction
 from ..schemas import InfoResponse, ErrorResponse
@@ -16,13 +18,24 @@ router = APIRouter(prefix="/api", tags=["info"])
 })
 async def get_user_info(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
+        # Получаем инвентарь пользователя
         inventory_result = await db.execute(select(Inventory).filter_by(owner_id=current_user.id))
         inventory = inventory_result.scalars().all()
 
-        sent_transactions_result = await db.execute(select(CoinTransaction).filter_by(sender_id=current_user.id))
+        # Получаем отправленные транзакции
+        sent_transactions_result = await db.execute(
+            select(CoinTransaction)
+            .filter_by(sender_id=current_user.id)
+            .options(joinedload(CoinTransaction.receiver))
+        )
         sent_transactions = sent_transactions_result.scalars().all()
 
-        received_transactions_result = await db.execute(select(CoinTransaction).filter_by(receiver_id=current_user.id))
+        # Получаем полученные транзакции
+        received_transactions_result = await db.execute(
+            select(CoinTransaction)
+            .filter_by(receiver_id=current_user.id)
+            .options(joinedload(CoinTransaction.sender))
+        )
         received_transactions = received_transactions_result.scalars().all()
 
         return {
