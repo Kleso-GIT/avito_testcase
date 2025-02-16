@@ -24,19 +24,28 @@ router = APIRouter(prefix="/api", tags=["transactions"])
 async def send_coin(
         send_request: SendCoinRequest,
         current_user: User = Depends(get_current_user),
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
 ):
     if current_user.coins < send_request.amount:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Недостаточно монет")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Недостаточно монет",
+        )
 
-    result = await db.execute(select(User).filter(User.username == send_request.toUser))
-    recipient = result.scalars().first()
+    recipient = await db.execute(select(User).filter(User.username == send_request.toUser))
+    recipient = recipient.scalars().first()
 
     if not recipient:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Получатель не найден")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Получатель не найден",
+        )
 
     if current_user.username == send_request.toUser:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Нельзя отправить монеты самому себе")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Нельзя отправить монеты самому себе",
+        )
 
     try:
         current_user.coins -= send_request.amount
@@ -46,13 +55,15 @@ async def send_coin(
             amount=send_request.amount,
             sender_id=current_user.id,
             receiver_id=recipient.id,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         db.add(transaction)
         await db.commit()
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Ошибка при отправке монет: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при отправке монет: {str(e)}",
+        )
 
     return {"message": "Монеты успешно отправлены"}
