@@ -9,6 +9,8 @@ services:
       - "8080:8080"
     environment:
       - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/avito_merch_shop
+      - TEST_DATABASE_URL=postgresql+asyncpg://user:password@db:5432/avito_merch_shop_test
+      - USE_TEST_DB=True
     depends_on:
       - db
 
@@ -20,6 +22,7 @@ services:
       POSTGRES_DB: avito_merch_shop
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Для создания тестовой бд с самоочисткой
     ports:
       - "5432:5432"
 

@@ -1,0 +1,1 @@
+CREATE DATABASE avito_merch_shop_test;

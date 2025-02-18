@@ -1,5 +1,9 @@
 import os
 
+
+# Настройка для выбора тестовой либо продуктовой базы. Тестовая очищается при каждом перезапуске
+USE_TEST_DB = os.getenv("USE_TEST_DB", True)
+
 ITEMS = {
     "t-shirt": 80,
     "cup": 20,
@@ -14,6 +18,7 @@ ITEMS = {
 }
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 # Конфигурация JWT
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")

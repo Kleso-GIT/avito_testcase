@@ -1,8 +1,9 @@
 # .env
 from dotenv import load_dotenv
-
 load_dotenv()
 
+from sqlalchemy import text
+from app.config import USE_TEST_DB
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
@@ -15,9 +16,24 @@ security = HTTPBearer()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if USE_TEST_DB:
+        async with engine.connect() as conn:
+            try:
+                # Получаем список всех таблиц
+                tables = Base.metadata.tables.keys()
+                if tables:
+                    table_names = ", ".join(f'"{t}"' for t in tables)  # Экранируем имена таблиц
+                    await conn.execute(text(f'TRUNCATE {table_names} RESTART IDENTITY CASCADE'))
+                    await conn.commit()  # Фиксируем изменения
+                    print("Тестовая база очищена.")
+            except Exception as e:
+                print(f"Ошибка при очистке тестовой базы: {e}")
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
     yield
+
 
 app = FastAPI(
     title="API Avito shop",
